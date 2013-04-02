@@ -63,6 +63,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if(not data):
                 return
             t = user.User(data['user'])
+            if(data['actionDeleteUser']):
+                user.deleteUser(data['user'])
+                return
             if(data['actionModRatings']):
                 for i in data['modRatings'].keys():
                     t.modifyKeywordRating(i, data['modRatings'][i])

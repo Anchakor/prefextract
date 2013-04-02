@@ -77,6 +77,14 @@ class User:
 		else:
 			return self.keywordRatings[keyword]
 
+	def modifyKeywordRating(self, keyword, ratingMod):
+		"""
+		set rating for a keyword
+		:type keyword: string
+		:type ratingMod: float
+		"""
+		self.keywordRatings[keyword] = self.keywordRatings[keyword] + rating
+
 	def setKeywordRating(self, keyword, rating):
 		"""
 		set rating for a keyword
@@ -109,10 +117,10 @@ class User:
 		
 		ratedKeywords = getRatedKeywords(keywords, 0)
 
+		# get hypernym rating
 		synsets = map(lambda k: wn.synsets(k.replace(' ','_')), keywords)
-		synsets = [ss for ss in synsets if ss]
-		synsets = map(lambda ss: ss[0], synsets)
-		ratedHypernymKeywords = []
+		synsets = [ss for ss in synsets if ss] # filter out the empty ones
+		synsets = map(lambda ss: ss[0], synsets) # get first synset of each keyword
 		for depth in range(1,hypernymDepth+1):
 			newSynsets = []
 			for ss in synsets:
@@ -125,13 +133,18 @@ class User:
 		getDepthRating = lambda rating, depth: rating * pow(depth+1, -hypernymDepthPowerQ)
 
 		ratedKeywords = map(lambda x: getDepthRating(x[1],x[2]), ratedKeywords)
-		rating = reduce(lambda x, y: x+y, ratedKeywords) / len(ratedKeywords)
+		if(len(ratedKeywords) <= 0):
+			rating = 0.0
+		else:
+			rating = reduce(lambda x, y: x+y, ratedKeywords, 0.0) / len(ratedKeywords)
 		return rating
 
 
 u = "testUser"
 t = User(u)
 t.setKeywordRating('document',1.0) # 'document' is hypernym of 'patent'
-t.getRating(data.testdata[0]['brief']) # 'patent' is keyword of this article
+for i in data.testdata:
+	print t.getRating(i['brief']) # 'patent' is keyword of the first article
+t.saveData()
 deleteUser(u)
 

@@ -13,13 +13,12 @@ def tag(str, minOccurance=2, wordN=8):
     tokens = [''.join(c for c in s if c not in string.punctuation) for s in tokens]
     tokens = [s for s in tokens if s] # clear empty words
 
-    #this takes tooooo long: tfidfTokens = map(lambda x: corpusCollection.tf_idf(x, tokens), [tokens[4]])
-
     # frequency distribution how often a word in the tokenized text
     wordFd = nltk.FreqDist(tokens1)
 
     tok2 = [t for t in tokens if wordFd[t] >= minOccurance]
-    x = map(lambda x: (x, wordFd.freq(x) - corpusWordFd.freq(x)), tok2)
+    x = map(lambda x: (x, wordFd.freq(x) - (corpusSize/len(tokens1))*corpusWordFd.freq(x)), tok2)
+    x = [t for t in x if t[1] > -8.0]
     x = list(set(x))
     x = sorted(x, key=lambda tup: tup[1], reverse=True)
     x = x[:wordN]

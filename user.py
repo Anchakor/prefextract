@@ -83,7 +83,7 @@ class User:
 		:type keyword: string
 		:type ratingMod: float
 		"""
-		self.keywordRatings[keyword] = self.keywordRatings[keyword] + rating
+		self.keywordRatings[keyword] = self.getKeywordRating(keyword) + ratingMod
 
 	def setKeywordRating(self, keyword, rating):
 		"""

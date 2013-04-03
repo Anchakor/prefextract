@@ -99,7 +99,9 @@ class User:
 		:rtype float
 		"""
 		hypernymDepth = 2
-		hypernymDepthPowerQ = 1 # 1..inf
+		hypernymDepthPowerQ = 1.0 # 0.0..inf
+		useDepthWeightedRating = 1
+		depthWeightingDepthPowerQ = 0.5
 
 		# keyword tagging
 
@@ -130,13 +132,22 @@ class User:
 				ratedKeywords.extend(getRatedKeywords(kwL, depth))
 			synsets = newSynsets
 		
-		getDepthRating = lambda rating, depth: rating * pow(depth+1, -hypernymDepthPowerQ)
+		getDepthRating = lambda rating, depth, depthPowerQ: rating * pow(depth+1, -depthPowerQ)
 
-		ratedKeywords = map(lambda x: getDepthRating(x[1],x[2]), ratedKeywords)
+		#ratedKeywords = [('x',1.0,0),('xx',1.0,2)]
 		if(len(ratedKeywords) <= 0):
 			rating = 0.0
 		else:
-			rating = reduce(lambda x, y: x+y, ratedKeywords, 0.0) / len(ratedKeywords)
+			ratings = map(lambda x: getDepthRating(x[1],x[2],hypernymDepthPowerQ), ratedKeywords)
+			if(useDepthWeightedRating):
+				# weightedList makes sure additional hypernym ratings don't drive the rating down much:
+				# if hypernymDepthPowerQ == depthWeightingDepthPowerQ rating of [('x',1.0,0),('xx',1.0,2)] == rating of [('x',1.0,0)]
+				if(depthWeightingDepthPowerQ > hypernymDepthPowerQ):
+					print "warning: depthWeightingDepthPowerQ > hypernymDepthPowerQ -> keyword hypernyms are more valuable then keywords"
+				weightedList = map(lambda x: getDepthRating(1.0,x[2],depthWeightingDepthPowerQ), ratedKeywords)
+				rating = sum(ratings) / sum(weightedList)
+			else:
+				rating = sum(ratings) / len(ratings)
 		return rating
 
 

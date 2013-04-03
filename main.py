@@ -44,6 +44,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
   "actionGetRating": true, 
   "actionModRatings": true, 
   "modRatings": { "document": 1.0 },
+  "actionDeleteUser": false, 
   "text": "Google just settled video codec patent claims with MPEG LA and its VP8 format, which it wants to be elevated to an Internet standard, already faces the next round of patent infringement allegations. Nokia submitted an IPR declaration to the Internet Engineering Task Force listing 64 issued patents and 22 pending patent applications it believes are essential to VP8. To add insult to injury, Nokia's declaration to the IETF says NO to royalty-free licensing and also NO to FRAND (fair, reasonable and non-discriminatory) licensing. Nokia reserves the right to sue over VP8 and to seek sales bans without necessarily negotiating a license deal. Two of the 86 declared IPRs are already being asserted in Mannheim, Germany, where Nokia is suing HTC in numerous patent infringement cases. A first VP8-related trial took place on March 8 and the next one is scheduled for June 14. In related Nokia-Google patent news, the Finns are trying to obtain a U.S. import ban against HTC to force it to disable tethering (or, more likely, to pay up)." 
 }
 </textarea><br />

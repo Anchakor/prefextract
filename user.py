@@ -9,6 +9,7 @@ import topia.termextract.extract
 keywordExtractor = topia.termextract.extract.TermExtractor()
 
 import data
+from config import config
 
 def cutup(str, length=255):
 	"""
@@ -98,10 +99,11 @@ class User:
 		get rating for a string
 		:rtype float
 		"""
-		hypernymDepth = 2
-		hypernymDepthPowerQ = 1.0 # 0.0..inf
-		useDepthWeightedRating = 1
-		depthWeightingDepthPowerQ = 1.0 #0.5
+		hypernymDepth = config.conf['hypernymDepth']
+		hypernymDepthPowerQ = config.conf['hypernymDepthPowerQ']
+		useDepthWeightedRating = config.conf['useDepthWeightedRating']
+		depthWeightingDepthPowerQ = config.conf['depthWeightingDepthPowerQ']
+		averageFactorAddition = config.conf['averageFactorAddition']
 
 		# keyword tagging
 
@@ -146,7 +148,7 @@ class User:
 				if(depthWeightingDepthPowerQ > hypernymDepthPowerQ):
 					print "warning: depthWeightingDepthPowerQ > hypernymDepthPowerQ -> keyword hypernyms are more valuable then keywords"
 				weightedList = map(lambda x: getDepthRating(1.0,x[2],depthWeightingDepthPowerQ), ratedKeywords)
-				rating = sum(ratings) / sum(weightedList)
+				rating = sum(ratings) / (sum(weightedList) + averageFactorAddition)
 			else:
 				rating = sum(ratings) / len(ratings)
 		return rating

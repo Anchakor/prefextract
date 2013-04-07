@@ -8,6 +8,7 @@ import json
 from cgi import parse_header, parse_multipart
 from urlparse import parse_qs
 import sys
+from config import config
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def parse_POST(self):
@@ -72,20 +73,19 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 s.wfile.write(json.dumps(data, indent=4))
 
 if __name__ == '__main__':
-    config = dict()
     if(len(sys.argv) > 1):
         f = open(sys.argv[1], 'r')
-        config = json.load(f)
+        config.conf = json.load(f)
         f.close()
-    else:
-        config['hostname'] = 'localhost'
-        config['port'] = 8967
+    hostname = config.conf['hostname']
+    portNumber = config.conf['port']
+
     serverClass = BaseHTTPServer.HTTPServer
-    httpd = serverClass((config['hostname'], config['port']), MyHandler)
-    print time.asctime(), "Server Starts - %s:%s" % (config['hostname'], config['port'])
+    httpd = serverClass((hostname, portNumber), MyHandler)
+    print time.asctime(), "Server Starts - %s:%s" % (hostname, portNumber)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print time.asctime(), "Server Stops - %s:%s" % (config['hostname'], config['port'])
+    print time.asctime(), "Server Stops - %s:%s" % (hostname, portNumber)

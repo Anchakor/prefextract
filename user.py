@@ -101,7 +101,7 @@ class User:
 		hypernymDepth = 2
 		hypernymDepthPowerQ = 1.0 # 0.0..inf
 		useDepthWeightedRating = 1
-		depthWeightingDepthPowerQ = 0.5
+		depthWeightingDepthPowerQ = 1.0 #0.5
 
 		# keyword tagging
 
@@ -141,7 +141,8 @@ class User:
 			ratings = map(lambda x: getDepthRating(x[1],x[2],hypernymDepthPowerQ), ratedKeywords)
 			if(useDepthWeightedRating):
 				# weightedList makes sure additional hypernym ratings don't drive the rating down much:
-				# if hypernymDepthPowerQ == depthWeightingDepthPowerQ rating of [('x',1.0,0),('xx',1.0,2)] == rating of [('x',1.0,0)]
+				# if hypernymDepthPowerQ == depthWeightingDepthPowerQ rating([('x',1.0,0),('xx',1.0,2)]) == rating([('x',1.0,0)]) = weighted mean
+				# which is also problematic because then rating rating([('x',1.0,0)]) == rating([('xx',1.0,2)])
 				if(depthWeightingDepthPowerQ > hypernymDepthPowerQ):
 					print "warning: depthWeightingDepthPowerQ > hypernymDepthPowerQ -> keyword hypernyms are more valuable then keywords"
 				weightedList = map(lambda x: getDepthRating(1.0,x[2],depthWeightingDepthPowerQ), ratedKeywords)

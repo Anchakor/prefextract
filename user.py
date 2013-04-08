@@ -5,9 +5,6 @@ import cPickle as pickle
 
 from nltk.corpus import wordnet as wn
 
-import topia.termextract.extract
-keywordExtractor = topia.termextract.extract.TermExtractor()
-
 import data
 from config import config
 
@@ -94,9 +91,10 @@ class User:
 		"""
 		self.keywordRatings[keyword] = rating
 
-	def getRating(self, str):
+	def getRating(self, keywords):
 		"""
-		get rating for a string
+		get rating for keywords as average of rated keywords
+		:type keywords: list of strings
 		:rtype float
 		"""
 		hypernymDepth = config.conf['hypernymDepth']
@@ -104,17 +102,6 @@ class User:
 		useDepthWeightedRating = config.conf['useDepthWeightedRating']
 		depthWeightingDepthPowerQ = config.conf['depthWeightingDepthPowerQ']
 		averageFactorAddition = config.conf['averageFactorAddition']
-
-		# keyword tagging
-
-		keywords0 = sorted(keywordExtractor(str))
-		# var keywords1: all keywords
-		keywords1 = map(lambda x: x[0], keywords0)
-		# var keywords2: keywords appearing at least 2x
-		keywords2 = map(lambda x: x[0], [y for y in keywords0 if y[1] > 1])
-		keywords = keywords2
-
-		# get keyword rating as average of rated keywords
 
 		removeUnratedKeywords = lambda l: [s for s in l if not s[1] == 0.0]
 		getRatedKeywords = lambda l, depth: removeUnratedKeywords(map(lambda x: (x, self.getKeywordRating(x), depth), l))
@@ -152,13 +139,4 @@ class User:
 			else:
 				rating = sum(ratings) / len(ratings)
 		return rating
-
-
-u = "testUser"
-t = User(u)
-t.setKeywordRating('document',1.0) # 'document' is hypernym of 'patent'
-for i in data.testdata:
-	print t.getRating(i['brief']) # 'patent' is keyword of the first article
-t.saveData()
-deleteUser(u)
 

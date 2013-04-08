@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import user
+import termextract
 
 import time
 import BaseHTTPServer
@@ -69,7 +70,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     t.modifyKeywordRating(i, data['modRatings'][i])
                 t.saveData()
             if(data['actionGetRating']):
-                data['rating'] = t.getRating(data['text'])
+                kws = termextract.getKeywords(data['text'])
+                data['keywords'] = kws
+                data['rating'] = t.getRating(kws)
                 s.wfile.write(json.dumps(data, indent=4))
 
 if __name__ == '__main__':

@@ -100,12 +100,12 @@ class Learnfilter extends Plugin {
 			$acontent .= "<p style='font-size: small;'>LF keywords: ";
 			$kws = $outdata->keywords ? $outdata->keywords : array();
 			foreach($kws as $kw) {
-				$acontent .= $kw."(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0);'>+</a>/".
-					"<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",-1.0);'>-</a>), ";
+				$acontent .= $kw."(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0);' title='increase rating'>+</a>/".
+					"<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",-1.0);' title='decrease rating'>-</a>), ";
 			}
 			if(count($kws) > 0) { 
-				$acontent .= "[all](<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",1.0/".count($kws).");'>+</a>/"
-					."<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",-1.0/".count($kws).");'>-</a>)";
+				$acontent .= "[all](<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",1.0/".count($kws).");' title='increase rating'>+</a>/"
+					."<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",-1.0/".count($kws).");' title='decrease rating'>-</a>)";
 			}
 			$acontent .= "</p>\n".$article["content"]."</div>";
 		}

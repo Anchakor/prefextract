@@ -10,5 +10,7 @@ def getKeywords(str):
     # var keywords2: keywords appearing at least 2x
     keywords2 = map(lambda x: x[0], [y for y in keywords0 if y[1] > 1])
     keywords = keywords2
+    if(len(keywords) < 3):
+        keywords = keywords + keywords1[:5]
 
     return keywords

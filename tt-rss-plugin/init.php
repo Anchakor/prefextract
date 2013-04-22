@@ -20,7 +20,10 @@ class Learnfilter extends Plugin {
 	function save() {
 		$learnfilter_url = db_escape_string($this->link, $_POST["learnfilter_url"]);
 		$this->host->set($this, "Learnfilter_URL", $learnfilter_url);
-		echo "Value Learnfilter URL set to $learnfilter_url<br/>";
+		echo "Learnfilter URL set to $learnfilter_url<br/>";
+		$learnfilter_threshold = db_escape_string($this->link, $_POST["learnfilter_threshold"]);
+		$this->host->set($this, "Learnfilter_threshold", $learnfilter_threshold);
+		echo "Learnfilter threshold set to $learnfilter_threshold<br/>";
 	}
 	function get_js() {
 		return file_get_contents(dirname(__FILE__) . "/learnfilter.js");
@@ -34,6 +37,13 @@ class Learnfilter extends Plugin {
 			$url = "http://localhost:18967/";
 		}
 		return $url;
+	}
+	function getThreshold() {
+		$t = (float)$this->host->get($this, "Learnfilter_threshold");
+		if($t > -0.1) {
+			$t = -5.0;
+		}
+		return $t;
 	}
 
 	function urlsafe_b64encode($data) {
@@ -81,13 +91,13 @@ class Learnfilter extends Plugin {
 		$outdata = json_decode($output);
 		$acontent = "";
 		if($outdata) {
-			if($outdata->rating < -5.0) {
+			if($outdata->rating < $this->getThreshold()) {
 				$acontent .= "<p style='font-size: x-small;'>LF [filtered] (<a href='#' onClick='learnfilterShow(\"LFilteredArticle-".$article['id']."\");'>show</a>)</p>".
 					"<div id='LFilteredArticle-".$article['id']."' style='display: none;'>\n";
 			} else {
 				$acontent .= "<div>\n";
 			}
-			$acontent .= "<p style='font-size: x-small;'>LF keywords: ";
+			$acontent .= "<p style='font-size: small;'>LF keywords: ";
 			$kws = $outdata->keywords ? $outdata->keywords : array();
 			foreach($kws as $kw) {
 				$acontent .= $kw."(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0);'>+</a>/".
@@ -143,8 +153,8 @@ class Learnfilter extends Plugin {
 
 		print "<br/>";
 
-		$learnfilter_url = $this->host->get($this, "Learnfilter_URL");
-		//$learnfilter_api = $this->host->get($this, "Learnfilter_API");
+		$learnfilter_url = $this->getURL();
+		$learnfilter_threshold = $this->getThreshold();
 		print "<form dojoType=\"dijit.form.Form\">";
 
 		print "<script type=\"dojo/method\" event=\"onSubmit\" args=\"evt\">
@@ -166,6 +176,8 @@ notify_info(transport.responseText);
 		print "<table width=\"100%\" class=\"prefPrefsList\">";
 		print "<tr><td width=\"40%\">".__("Learnfilter prefextract service URL")."</td>";
 		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_url\" regExp='^(http|https)://.*' value=\"$learnfilter_url\"></td></tr>";
+		print "<tr><td width=\"40%\">".__("Learnfilter rating threshold")."</td>";
+		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_threshold\" regExp='^[-+]?[0-9]*\.?[0-9]+$' value=\"$learnfilter_threshold\"></td></tr>";
 		//print "<tr><td width=\"40%\">".__("Learnfilter API Key")."</td>";
 		//print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_api\" value=\"$learnfilter_api\"></td></tr>";
 		print "</table>";

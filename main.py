@@ -57,19 +57,19 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         s.send_header("Cache-Control", "private, must-revalidate, max-age=0")
         s.send_header("Pragma", "no-cache")
         s.end_headers()
-        if(postvars['data'][0]):
+        if(postvars.has_key('data') and postvars['data'][0]):
             data = json.loads(postvars['data'][0])
             if(not data):
                 return
             t = user.User(data['user'])
-            if(data['actionDeleteUser']):
+            if(data.has_key('actionDeleteUser')):
                 user.deleteUser(data['user'])
                 return
-            if(data['actionModRatings']):
+            if(data.has_key('actionModRatings')):
                 for i in data['modRatings'].keys():
                     t.modifyKeywordRating(i, data['modRatings'][i])
                 t.saveData()
-            if(data['actionGetRating']):
+            if(data.has_key('actionGetRating')):
                 kws = termextract.getKeywords(data['text'])
                 data['keywords'] = kws
                 data['rating'] = t.getRating(kws)

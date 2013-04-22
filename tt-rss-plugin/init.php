@@ -2,18 +2,14 @@
 class Learnfilter extends Plugin {
 	private $link;
 	private $host;
-	private $curl_learnfilter;
 
 	function init($host) {
 		$this->link = $host->get_link();
 		$this->host = $host;
-		$this->curl_learnfilter = $curl_learnfilter;
-		$this->curl_learnfilter = curl_init() ;
-		curl_setopt($this->curl_learnfilter, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->curl_learnfilter, CURLOPT_FOLLOWLOCATION, true);
 
 		//$host->add_hook($host::HOOK_ARTICLE_BUTTON, $this);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
+		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
 	}
 
 	function about() {
@@ -29,6 +25,16 @@ class Learnfilter extends Plugin {
 	function get_js() {
 		return file_get_contents(dirname(__FILE__) . "/learnfilter.js");
 	}
+	function getUID() {
+		return 'learnfilter:'.$_SESSION['uid'];
+	}
+	function getURL() {
+		$url = $this->host->get($this, "Learnfilter_URL");
+		if(strncmp($url, "http", 4) != 0) {
+			$url = "http://localhost:18967/";
+		}
+		return $url;
+	}
 
 	function urlsafe_b64encode($data) {
 		//return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -38,66 +44,97 @@ class Learnfilter extends Plugin {
 		//return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
 		return base64_decode(strtr($data, '-_', '+/'));
 	}
+	function html2txt($document){
+		$rep = array('@</p>@i', '@<br>@i', '@</br>@i', '@<br />@i', '@<br/>@i');
+		$doc2 = preg_replace($rep, "\n", $document);
+		$search = array('@<script[^>]*?>.*?</script>@si',  // Strip out javascript
+					   '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
+					   '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly
+					   '@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments including CDATA
+		);
+		$text = preg_replace($search, '', $doc2);
+		$text = preg_replace('/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/', '', $text);
+		return $text;
+	} 
 	// $_SESSION['uid'] or $_SESSION['name'] as user ID
 
-	/*function hook_article_button($line) {
-		$article_id = $line["id"];
+	function hook_render_article_cdm($article) {
+		$uid = $this->getUID();
+		$content = $this->html2txt($article["content"]);
+		$data = json_encode(array("user" => $uid, "actionGetRating" => true, "text" => $content));
 
-		$rv = "<img src=\"plugins/learnfilter/learnfilter.png\"
-			class='tagsPic' style=\"cursor : pointer\"
-			onclick=\"shareArticleToLearnfilter($article_id)\"
-			title='".__('Send article to Learnfilter')."'>";
-
-		return $rv;
-	}*/
-
-	/*function getInfoOld() {
-		$id = db_escape_string($this->link, $_REQUEST['id']);
-
-		$result = db_query($this->link, "SELECT title, link
-				FROM ttrss_entries, ttrss_user_entries
-				WHERE id = '$id' AND ref_id = id AND owner_uid = " .$_SESSION['uid']);
-
-		if (db_num_rows($result) != 0) {
-			$title = truncate_string(strip_tags(db_fetch_result($result, 0, 'title')),
-					100, '...');
-			$article_link = db_fetch_result($result, 0, 'link');
+		$ch = curl_init($this->getURL());
+		$encoded = '';
+		foreach(array("data" => $data) as $name => $value) {
+		  $encoded .= urlencode($name).'='.urlencode($value).'&';
 		}
-	
-		$learnfilter_url = $this->host->get($this, "Learnfilter_URL");
-		$learnfilter_api = $this->host->get($this, "Learnfilter_API");
+		// chop off last ampersand
+		$encoded = substr($encoded, 0, strlen($encoded)-1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS,  $encoded);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		$output = curl_exec($ch);
+		curl_close($ch);
 
-		print json_encode(array("title" => $title, "link" => $article_link,
-					"id" => $id, "learnfilterurl" => $learnfilter_url, "learnfilterapi" => $learnfilter_api));		
+		$outdata = json_decode($output);
+		$acontent = "";
+		if($outdata) {
+			if($outdata->rating < -5.0) {
+				$acontent .= "<p style='font-size: x-small;'>LF [filtered] (<a href='#' onClick='learnfilterShow(\"LFilteredArticle-".$article['id']."\");'>show</a>)</p>".
+					"<div id='LFilteredArticle-".$article['id']."' style='display: none;'>\n";
+			} else {
+				$acontent .= "<div>\n";
+			}
+			$acontent .= "<p style='font-size: x-small;'>LF keywords: ";
+			$kws = $outdata->keywords ? $outdata->keywords : array();
+			foreach($kws as $kw) {
+				$acontent .= $kw."(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0);'>+</a>/".
+					"<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",-1.0);'>-</a>), ";
+			}
+			if(count($kws) > 0) { 
+				$acontent .= "[all](<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",1.0/".count($kws).");'>+</a>/"
+					."<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",-1.0/".count($kws).");'>-</a>)";
+			}
+			$acontent .= "</p>\n".$article["content"]."</div>";
+		}
+		$article["content"] = $acontent;
+
+		/*$article["content"] = htmlspecialchars(print_r($outdata, true))."<br />\n".htmlspecialchars($data)."<br />\n".htmlspecialchars($output)."<br />\narticle id: ".$article["id"]."<br />\n".
+			"<p style='color: blue; display: block;'>".htmlspecialchars(print_r($article, true))."<br />".htmlspecialchars($this->html2txt($article["content"]))."</p>" . 
+			$article["content"];
+		 */
+		return $article;
 	}
 
-	function getInfo() {
-		$id = db_escape_string($this->link, $_REQUEST['id']);
-
-		$result = db_query($this->link, "SELECT title, link
-				FROM ttrss_entries, ttrss_user_entries
-				WHERE id = '$id' AND ref_id = id AND owner_uid = " .$_SESSION['uid']);
-
-		if (db_num_rows($result) != 0) {
-			$title = truncate_string(strip_tags(db_fetch_result($result, 0, 'title')),
-					100, '...');
-			$article_link = db_fetch_result($result, 0, 'link');
+	function modRating() {
+		$uid = $this->getUID();
+		$mod = $_POST["mod"];
+		$value = $_POST["value"];
+		$modArray = explode("_",$mod);
+		$modArray2 = array();
+		foreach($modArray as $x) {
+			$modArray2[$x] = (float)$value;
 		}
-	
-		$learnfilter_url = $this->host->get($this, "Learnfilter_URL");
-		$learnfilter_api = $this->host->get($this, "Learnfilter_API");
-/*		$curl_learnfilter = curl_init() ;
-		curl_setopt($curl_learnfilter, CURLOPT_URL, "$learnfilter_url/learnfilter-api.php?signature=$learnfilter_api&action=shorturl&format=simple&url=".urlencode($article_link)."&title=".urlencode($title)) ;
-		curl_setopt($curl_learnfilter, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_learnfilter, CURLOPT_FOLLOWLOCATION, true);
-		$short_url = curl_exec($curl_learnfilter) ;
-		curl_close($curl_learnfilter) ;*/ 
-        /*        curl_setopt($this->curl_learnfilter, CURLOPT_URL, "$learnfilter_url/learnfilter-api.php?signature=$learnfilter_api&action=shorturl&format=simple&url=".urlencode($article_link)."&title=".urlencode($title)) ;
-                $short_url = curl_exec($this->curl_learnfilter) ;
+		$data = json_encode(array("user" => $uid, "actionModRatings" => true, "modRatings" => $modArray2));
 
-		print json_encode(array("title" => $title, "link" => $article_link,
-					"id" => $id, "learnfilterurl" => $learnfilter_url, "learnfilterapi" => $learnfilter_api, "shorturl" => $short_url));		
-	}*/
+		$ch = curl_init($this->getURL());
+		$encoded = '';
+		foreach(array("data" => $data) as $name => $value) {
+		  $encoded .= urlencode($name).'='.urlencode($value).'&';
+		}
+		// chop off last ampersand
+		$encoded = substr($encoded, 0, strlen($encoded)-1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS,  $encoded);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		$o = curl_exec($ch);
+		curl_close($ch);
+		print $o;
+	}
 
 	function hook_prefs_tab($args) {
 		if ($args != "prefPrefs") return;

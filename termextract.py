@@ -17,9 +17,10 @@ def f7(seq):
 def getKeywords(str):
     # keyword tagging
 
-    str = re.sub(u'[^a-zA-Z0-9áéíóúÁÉÍÓÚâêîôÂÊÎÔãõÃÕçÇ:/\+\-"\'&\.,; ]', ' ', str)
+    str = re.sub(u'&#[0-9]+;', '', str)
+    #str = re.sub(u'[^a-zA-Z0-9áéíóúÁÉÍÓÚâêîôÂÊÎÔãõÃÕçÇ:/\+\-"\'&\$\.,; ]', ' ', str)
     str = htmlentitydecode(str)
-    str = re.sub(u'[^a-zA-Z0-9áéíóúÁÉÍÓÚâêîôÂÊÎÔãõÃÕçÇ:/\+\-&\., ]', ' ', str)
+    str = re.sub(u'[^a-zA-Z0-9áéíóúÁÉÍÓÚâêîôÂÊÎÔãõÃÕçÇ:/\+\-&\$\., ]', ' ', str)
     keywords0 = sorted(keywordExtractor(str))
     # var keywords1: all keywords
     keywords1 = map(lambda x: x[0], keywords0)

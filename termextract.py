@@ -1,5 +1,13 @@
+# -*- coding: utf-8 -*-
+
+import re
+from htmlentitydefs import name2codepoint
 import topia.termextract.extract
 keywordExtractor = topia.termextract.extract.TermExtractor()
+
+def htmlentitydecode(s):
+    return re.sub('&(%s);' % '|'.join(name2codepoint),
+        lambda m: unichr(name2codepoint[m.group(1)]), s)
 
 def f7(seq):
     seen = set()
@@ -9,6 +17,9 @@ def f7(seq):
 def getKeywords(str):
     # keyword tagging
 
+    str = re.sub(u'[^a-zA-Z0-9áéíóúÁÉÍÓÚâêîôÂÊÎÔãõÃÕçÇ:/\+\-"\'&\.,; ]', ' ', str)
+    str = htmlentitydecode(str)
+    str = re.sub(u'[^a-zA-Z0-9áéíóúÁÉÍÓÚâêîôÂÊÎÔãõÃÕçÇ:/\+\-&\., ]', ' ', str)
     keywords0 = sorted(keywordExtractor(str))
     # var keywords1: all keywords
     keywords1 = map(lambda x: x[0], keywords0)

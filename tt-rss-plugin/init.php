@@ -76,27 +76,25 @@ class Learnfilter extends Plugin {
 		$content = $this->html2txt($article["title"]);
 		$content .= " . \n".$this->html2txt($article["content"]);
 		$data = json_encode(array("user" => $uid, "actionGetRating" => true, "text" => $content));
-		$datahash = md5($uid.$content);
+		$datahash = md5($uid.$article["title"]);
 
 		$output = "";
 		if(!$this->LFcache[$datahash]) {
 			$ch = curl_init($this->getURL());
-			$encoded = '';
-			foreach(array("data" => $data) as $name => $value) {
-			  $encoded .= urlencode($name).'='.urlencode($value).'&';
-			}
-			// chop off last ampersand
-			$encoded = substr($encoded, 0, strlen($encoded)-1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS,  $encoded);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array("data" => $data)));
 			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 			curl_setopt($ch, CURLOPT_POST, 1);
 			$output = curl_exec($ch);
 			curl_close($ch);
-			$this->LFcache[$datahash] = $output;
-			if(count($this->LFcache) > $this->maxCacheSize) {
-				unset($this->LFcache[array_rand($this->LFcache)]);
+			if($output) {
+				$this->LFcache[$datahash] = $output;
+				if(count($this->LFcache) > $this->maxCacheSize) {
+					unset($this->LFcache[array_rand($this->LFcache)]);
+				}
 			}
 		} else {
 			$output = $this->LFcache[$datahash];

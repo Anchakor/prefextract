@@ -196,7 +196,7 @@ notify_info(transport.responseText);
 		print "<tr><td width=\"40%\">".__("Learnfilter prefextract service URL")."</td>";
 		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_url\" regExp='^(http|https)://.*' value=\"$learnfilter_url\"></td></tr>";
 		print "<tr><td width=\"40%\">".__("Learnfilter rating threshold")."</td>";
-		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_threshold\" regExp='^[-+]?[0-9]*\.?[0-9]+$' value=\"$learnfilter_threshold\"></td></tr>";
+		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_threshold\" regExp='^-[0-9]+\.[1-9][0-9]*$' value=\"$learnfilter_threshold\"></td></tr>";
 		//print "<tr><td width=\"40%\">".__("Learnfilter API Key")."</td>";
 		//print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_api\" value=\"$learnfilter_api\"></td></tr>";
 		print "</table>";

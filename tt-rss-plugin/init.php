@@ -73,9 +73,10 @@ class Learnfilter extends Plugin {
 
 	function hook_render_article_cdm($article) {
 		$uid = $this->getUID();
-		$content = $this->html2txt($article["content"]);
+		$content = $this->html2txt($article["title"]);
+		$content .= " . \n".$this->html2txt($article["content"]);
 		$data = json_encode(array("user" => $uid, "actionGetRating" => true, "text" => $content));
-		$datahash = spl_object_hash($data);
+		$datahash = md5($uid.$content);
 
 		$output = "";
 		if(!$this->LFcache[$datahash]) {
@@ -121,8 +122,9 @@ class Learnfilter extends Plugin {
 					."<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",-1.0/".count($kws).");' title='decrease rating'>-</a>)";
 			}
 			$acontent .= "</p>\n".$article["content"]."</div>";
+			$article["content"] = $acontent;
 		}
-		$article["content"] = $acontent;
+		//$article["content"] = htmlspecialchars(print_r($article, true))."<br />".$acontent;
 
 		/*$article["content"] = htmlspecialchars(print_r($outdata, true))."<br />\n".htmlspecialchars($data)."<br />\n".htmlspecialchars($output)."<br />\narticle id: ".$article["id"]."<br />\n".
 			"<p style='color: blue; display: block;'>".htmlspecialchars(print_r($article, true))."<br />".htmlspecialchars($this->html2txt($article["content"]))."</p>" . 

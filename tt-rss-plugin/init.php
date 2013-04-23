@@ -8,11 +8,17 @@ class Learnfilter extends Plugin {
 	function init($host) {
 		$this->link = $host->get_link();
 		$this->host = $host;
-		$this->maxCacheSize = 300;
+		$this->maxCacheSize = 500;
 
 		//$host->add_hook($host::HOOK_ARTICLE_BUTTON, $this);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
+
+		$this->LFcache = json_decode($this->host->get($this, "Learnfilter_cache"), true);
+	}
+
+	function __destruct() {
+		$this->host->set($this, "Learnfilter_cache", json_encode($this->LFcache));
 	}
 
 	function about() {
@@ -91,10 +97,10 @@ class Learnfilter extends Plugin {
 			$output = curl_exec($ch);
 			curl_close($ch);
 			if($output) {
-				$this->LFcache[$datahash] = $output;
-				if(count($this->LFcache) > $this->maxCacheSize) {
+				if(count($this->LFcache) >= $this->maxCacheSize) {
 					unset($this->LFcache[array_rand($this->LFcache)]);
 				}
+				$this->LFcache[$datahash] = $output;
 			}
 		} else {
 			$output = $this->LFcache[$datahash];

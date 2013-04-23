@@ -1,6 +1,11 @@
 import topia.termextract.extract
 keywordExtractor = topia.termextract.extract.TermExtractor()
 
+def f7(seq):
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if x not in seen and not seen_add(x)]
+
 def getKeywords(str):
     # keyword tagging
 
@@ -13,4 +18,4 @@ def getKeywords(str):
     if(len(keywords) < 3):
         keywords = keywords + keywords1[:5]
 
-    return keywords
+    return f7(keywords)

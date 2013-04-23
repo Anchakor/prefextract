@@ -110,12 +110,12 @@ class Learnfilter extends Plugin {
 		$acontent = "";
 		if($outdata) {
 			if($outdata->rating < $this->getThreshold()) {
-				$acontent .= "<p style='font-size: x-small;'>LF [filtered] (<a href='#' onClick='learnfilterShow(\"LFilteredArticle-".$article['id']."\");'>show</a>)</p>".
+				$acontent .= "<p style='font-size: x-small; color: #555;'>LF [filtered] (<a href='#' onClick='learnfilterShow(\"LFilteredArticle-".$article['id']."\");'>show</a>)</p>".
 					"<div id='LFilteredArticle-".$article['id']."' style='display: none;'>\n";
 			} else {
 				$acontent .= "<div>\n";
 			}
-			$acontent .= "<p style='font-size: small;'>LF keywords: ";
+			$acontent .= "<p style='font-size: small; color: #555;'>LF keywords: ";
 			$kws = $outdata->keywords ? $outdata->keywords : array();
 			foreach($kws as $kw) {
 				$acontent .= $kw."(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0);' title='increase rating'>+</a>/".

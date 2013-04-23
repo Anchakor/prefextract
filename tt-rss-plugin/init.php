@@ -2,10 +2,13 @@
 class Learnfilter extends Plugin {
 	private $link;
 	private $host;
+	private $LFcache;
+	private $maxCacheSize;
 
 	function init($host) {
 		$this->link = $host->get_link();
 		$this->host = $host;
+		$this->maxCacheSize = 300;
 
 		//$host->add_hook($host::HOOK_ARTICLE_BUTTON, $this);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
@@ -72,21 +75,31 @@ class Learnfilter extends Plugin {
 		$uid = $this->getUID();
 		$content = $this->html2txt($article["content"]);
 		$data = json_encode(array("user" => $uid, "actionGetRating" => true, "text" => $content));
+		$datahash = spl_object_hash($data);
 
-		$ch = curl_init($this->getURL());
-		$encoded = '';
-		foreach(array("data" => $data) as $name => $value) {
-		  $encoded .= urlencode($name).'='.urlencode($value).'&';
+		$output = "";
+		if(!$this->LFcache[$datahash]) {
+			$ch = curl_init($this->getURL());
+			$encoded = '';
+			foreach(array("data" => $data) as $name => $value) {
+			  $encoded .= urlencode($name).'='.urlencode($value).'&';
+			}
+			// chop off last ampersand
+			$encoded = substr($encoded, 0, strlen($encoded)-1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS,  $encoded);
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($ch, CURLOPT_POST, 1);
+			$output = curl_exec($ch);
+			curl_close($ch);
+			$this->LFcache[$datahash] = $output;
+			if(count($this->LFcache) > $this->maxCacheSize) {
+				unset($this->LFcache[array_rand($this->LFcache)]);
+			}
+		} else {
+			$output = $this->LFcache[$datahash];
 		}
-		// chop off last ampersand
-		$encoded = substr($encoded, 0, strlen($encoded)-1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS,  $encoded);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		$output = curl_exec($ch);
-		curl_close($ch);
 
 		$outdata = json_decode($output);
 		$acontent = "";

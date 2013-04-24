@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=PYTHON2EXEC APPDIR/prefextract/main.py CONFIGDIR/prefextract
+ExecStart=PYTHON2EXEC APPDIR/prefextract/main.py CONFIGDIR/prefextract.conf
 
 # Give a reasonable amount of time for the server to start up/shut down
 # TimeoutSec=300

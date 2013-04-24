@@ -10,20 +10,23 @@ SYSTEMDDIR=$(PREFIX)/lib/systemd/system
 TTRSSDIR=$(APPDIR)/tt-rss/plugins
 
 PYTHON2EXEC=/usr/bin/env python2
+SCRIPTS=main.py user.py config.py termextract.py tag.py
 
 all:
 	@echo 'Use `make DESTDIR= install` to install to default location'
 
 install:
 	sed -e "s*PYTHON2EXEC*$(PYTHON2EXEC)*g;s*APPDIR*$(DESTDIR)$(APPDIR)*g;s*CONFIGDIR*$(DESTDIR)$(CONFIGDIR)*g" prefextract.service.in > prefextract.service
+	for script in $(SCRIPTS); do \
+		$(INSTALL_DATA) $$script $(DESTDIR)$(APPDIR)/prefextract/$$script || exit 1; \
+	done
+	$(INSTALL_DATA) prefextract.conf $(DESTDIR)$(CONFIGDIR)/prefextract.conf
 	$(INSTALL_DATA) prefextract.service $(DESTDIR)$(SYSTEMDDIR)/prefextract.service
 	$(INSTALL_DATA) tt-rss-plugin/init.php $(DESTDIR)$(TTRSSDIR)/learnfilter/init.php
 	$(INSTALL_DATA) tt-rss-plugin/learnfilter.js $(DESTDIR)$(TTRSSDIR)/learnfilter/learnfilter.js
-	#$(INSTALL)
-	#$(INSTALL_PROGRAM) foo $(bindir)/foo
-	#$(INSTALL_DATA) libfoo.a $(libdir)/libfoo.a
 
 uninstall:
+	rm -r $(DESTDIR)$(APPDIR)/prefextract
+	rm $(DESTDIR)$(CONFIGDIR)/prefextract.conf
 	rm $(DESTDIR)$(SYSTEMDDIR)/prefextract.service
-	rm $(DESTDIR)$(TTRSSDIR)/learnfilter/init.php
-	rm $(DESTDIR)$(TTRSSDIR)/learnfilter/learnfilter.js
+	rm -r $(DESTDIR)$(TTRSSDIR)/learnfilter

@@ -62,14 +62,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if(not data):
                 return
             t = user.User(data['user'])
-            if(data.has_key('actionDeleteUser')):
+            if(data.has_key('actionDeleteUser') and data['actionDeleteUser']):
                 user.deleteUser(data['user'])
                 return
-            if(data.has_key('actionModRatings')):
+            if(data.has_key('actionModRatings') and data['actionModRatings']):
                 for i in data['modRatings'].keys():
                     t.modifyKeywordRating(i, data['modRatings'][i])
                 t.saveData()
-            if(data.has_key('actionGetRating')):
+            if(data.has_key('actionGetRating') and data['actionGetRating']):
                 kws = termextract.getKeywords(data['text'])
                 data['keywords'] = kws
                 data['rating'] = t.getRating(kws)

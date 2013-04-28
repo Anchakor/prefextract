@@ -2,13 +2,12 @@
 class Learnfilter extends Plugin {
 	private $link;
 	private $host;
-	private $LFcache;
-	private $maxCacheSize;
+	private $LFcache = array();
+	private $maxCacheSize = 500;
 
 	function init($host) {
 		$this->link = $host->get_link();
 		$this->host = $host;
-		$this->maxCacheSize = 500;
 
 		//$host->add_hook($host::HOOK_ARTICLE_BUTTON, $this);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
@@ -33,6 +32,12 @@ class Learnfilter extends Plugin {
 		$learnfilter_threshold = db_escape_string($this->link, $_POST["learnfilter_threshold"]);
 		$this->host->set($this, "Learnfilter_threshold", $learnfilter_threshold);
 		echo "Learnfilter threshold set to $learnfilter_threshold<br/>";
+		if($_POST["learnfilter_clearcache"] == 'on')
+		{
+			$this->host->set($this, "Learnfilter_cache", json_encode(array()));
+			$this->LFcache = array();
+			echo "Cache cleared.";
+		}
 	}
 	function get_js() {
 		return file_get_contents(dirname(__FILE__) . "/learnfilter.js");
@@ -78,6 +83,7 @@ class Learnfilter extends Plugin {
 	// $_SESSION['uid'] or $_SESSION['name'] as user ID
 
 	function hook_render_article_cdm($article) {
+		$acontent = "";
 		$uid = $this->getUID();
 		$content = $this->html2txt($article["title"]);
 		$content .= " . \n".$this->html2txt($article["content"]);
@@ -85,7 +91,9 @@ class Learnfilter extends Plugin {
 		$datahash = md5($uid.$article["title"]);
 
 		$output = "";
-		if(!$this->LFcache[$datahash]) {
+		//$_SESSION["plugin_storage"] = false;
+		//$acontent .= "SX ".$this->host->get($this, "Learnfilter_cacheInvalidate")."<br>";
+		if(!array_key_exists($datahash, $this->LFcache)) {
 			$ch = curl_init($this->getURL());
 			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array("data" => $data)));
 			curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -107,7 +115,6 @@ class Learnfilter extends Plugin {
 		}
 
 		$outdata = json_decode($output, true);
-		$acontent = "";
 		if($outdata) {
 			if($outdata["rating"][0] < $this->getThreshold()) {
 				$acontent .= "<p style='font-size: x-small; color: #555;'>LF [filtered] (<a href='#' onClick='learnfilterShow(\"LFilteredArticle-".$article['id']."\");'>show</a>)</p>".
@@ -152,7 +159,11 @@ class Learnfilter extends Plugin {
 		$mod = $_POST["mod"];
 		$value = $_POST["value"];
 		$ahash = $_POST["hash"];
-		unset($this->LFcache[$ahash]);
+		//$this->LFcache = json_decode($this->host->get($this, "Learnfilter_cache"), true);
+		//unset($this->LFcache[$ahash]);
+		//$this->host->set($this, "Learnfilter_cache", json_encode($this->LFcache));
+		$this->host->set($this, "Learnfilter_cacheInvalidate", $ahash);
+		$_SESSION["plugin_storage"] = false;
 		$modArray = explode("_",$mod);
 		$modArray2 = array();
 		foreach($modArray as $x) {
@@ -209,6 +220,8 @@ notify_info(transport.responseText);
 		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_url\" regExp='^(http|https)://.*' value=\"$learnfilter_url\"></td></tr>";
 		print "<tr><td width=\"40%\">".__("Learnfilter rating threshold")."</td>";
 		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_threshold\" regExp='^-[0-9]+\.[1-9][0-9]*$' value=\"$learnfilter_threshold\"></td></tr>";
+		print "<tr><td width=\"40%\">".__("Clear Learnfilter cache")."</td>";
+		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.CheckBox\" name=\"learnfilter_clearcache\" /></td></tr>";
 		//print "<tr><td width=\"40%\">".__("Learnfilter API Key")."</td>";
 		//print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_api\" value=\"$learnfilter_api\"></td></tr>";
 		print "</table>";

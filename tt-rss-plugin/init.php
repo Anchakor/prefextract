@@ -55,7 +55,7 @@ class Learnfilter extends Plugin {
 	function getThreshold() {
 		$t = (float)$this->host->get($this, "Learnfilter_threshold");
 		if($t > -0.1) {
-			$t = -5.0;
+			$t = -1.0;
 		}
 		return $t;
 	}

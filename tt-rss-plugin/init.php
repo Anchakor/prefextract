@@ -106,26 +106,36 @@ class Learnfilter extends Plugin {
 			$output = $this->LFcache[$datahash];
 		}
 
-		$outdata = json_decode($output);
+		$outdata = json_decode($output, true);
 		$acontent = "";
 		if($outdata) {
-			if($outdata->rating < $this->getThreshold()) {
+			if($outdata["rating"][0] < $this->getThreshold()) {
 				$acontent .= "<p style='font-size: x-small; color: #555;'>LF [filtered] (<a href='#' onClick='learnfilterShow(\"LFilteredArticle-".$article['id']."\");'>show</a>)</p>".
 					"<div id='LFilteredArticle-".$article['id']."' style='display: none;'>\n";
 			} else {
 				$acontent .= "<div>\n";
 			}
 			$acontent .= "<p style='font-size: small; color: #555;'>LF keywords: ";
-			$kws = $outdata->keywords ? $outdata->keywords : array();
+			$kws = $outdata["keywords"] ? $outdata["keywords"] : array();
+			$ratedKws = $outdata["rating"][1];
 			foreach($kws as $kw) {
-				$acontent .= $kw."(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0);' title='increase rating'>+</a>/".
-					"<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",-1.0);' title='decrease rating'>-</a>), ";
+				if($ratedKws && array_key_exists($kw, $ratedKws)) {
+					if($ratedKws[$kw] >= 3.0) $acontent .= "<b>";
+					if($ratedKws[$kw] <= -3.0) $acontent .= "<i>";
+				}
+				$acontent .= $kw;
+				if($ratedKws && array_key_exists($kw, $ratedKws)) {
+					if($ratedKws[$kw] >= 3.0) $acontent .= "</b>";
+					if($ratedKws[$kw] <= -3.0) $acontent .= "</i>";
+				}
+				$acontent .= "(<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",1.0, \"".$datahash."\");' title='increase rating'>+</a>/".
+					"<a href='#' onClick='learnfilterModRating(\"".addslashes($kw)."\",-1.0, \"".$datahash."\");' title='decrease rating'>-</a>), ";
 			}
 			if(count($kws) > 0) { 
-				$acontent .= "[all](<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",1.0/".count($kws).");' title='increase rating'>+</a>/"
-					."<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",-1.0/".count($kws).");' title='decrease rating'>-</a>)";
+				$acontent .= "[all](<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",1.0/".count($kws).", \"".$datahash."\");' title='increase rating'>+</a>/"
+					."<a href='#' onClick='learnfilterModRating(\"".addslashes(implode("_",$kws))."\",-1.0/".count($kws).", \"".$datahash."\");' title='decrease rating'>-</a>)";
 			}
-			$acontent .= "</p>\n".$article["content"]."</div>";
+			$acontent .= " <span style='color: #BBB;' title='rating'>".$outdata["rating"][0]."</span></p>\n".$article["content"]."</div>";
 			$article["content"] = $acontent;
 		}
 		//$article["content"] = htmlspecialchars(print_r($article, true))."<br />".$acontent;
@@ -141,6 +151,8 @@ class Learnfilter extends Plugin {
 		$uid = $this->getUID();
 		$mod = $_POST["mod"];
 		$value = $_POST["value"];
+		$ahash = $_POST["hash"];
+		unset($this->LFcache[$ahash]);
 		$modArray = explode("_",$mod);
 		$modArray2 = array();
 		foreach($modArray as $x) {

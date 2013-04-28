@@ -124,6 +124,7 @@ class User:
 		getDepthRating = lambda rating, depth, depthPowerQ: rating * pow(depth+1, -depthPowerQ)
 
 		#ratedKeywords = [('x',1.0,0),('xx',1.0,2)]
+		ratings = [];
 		if(len(ratedKeywords) <= 0):
 			rating = 0.0
 		else:
@@ -138,5 +139,5 @@ class User:
 				rating = sum(ratings) / (sum(weightedList) + averageFactorAddition)
 			else:
 				rating = sum(ratings) / len(ratings)
-		return rating
+		return (rating, dict(zip(map(lambda x: x[0], ratedKeywords), ratings)))
 

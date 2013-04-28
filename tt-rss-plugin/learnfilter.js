@@ -1,6 +1,6 @@
-	function learnfilterModRating(kwmod, val) {
+	function learnfilterModRating(kwmod, val, articleHash) {
 	try {
-		var query = { op: 'pluginhandler', plugin: 'learnfilter', method: 'modRating', mod: kwmod, value: val };
+		var query = { op: 'pluginhandler', plugin: 'learnfilter', method: 'modRating', mod: kwmod, value: val, hash: articleHash };
 		new Ajax.Request("backend.php",	{
 			parameters: query,
 			method: 'post',

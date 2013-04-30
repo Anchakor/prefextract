@@ -5,7 +5,6 @@ import cPickle as pickle
 
 from nltk.corpus import wordnet as wn
 
-import data
 from config import config
 
 def cutup(str, length=255):

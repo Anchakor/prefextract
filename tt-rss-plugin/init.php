@@ -55,7 +55,7 @@ class Learnfilter extends Plugin {
 	function getThreshold() {
 		$t = (float)$this->host->get($this, "Learnfilter_threshold");
 		if($t > -0.1) {
-			$t = -1.0;
+			$t = -0.5;
 		}
 		return $t;
 	}
@@ -219,7 +219,7 @@ notify_info(transport.responseText);
 		print "<tr><td width=\"40%\">".__("Learnfilter prefextract service URL")."</td>";
 		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_url\" regExp='^(http|https)://.*' value=\"$learnfilter_url\"></td></tr>";
 		print "<tr><td width=\"40%\">".__("Learnfilter rating threshold")."</td>";
-		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_threshold\" regExp='^-[0-9]+\.[1-9][0-9]*$' value=\"$learnfilter_threshold\"></td></tr>";
+		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.ValidationTextBox\" required=\"1\" name=\"learnfilter_threshold\" regExp='^-[0-9]+\.[0-9]*$' value=\"$learnfilter_threshold\"></td></tr>";
 		print "<tr><td width=\"40%\">".__("Clear Learnfilter cache")."</td>";
 		print "<td class=\"prefValue\"><input dojoType=\"dijit.form.CheckBox\" name=\"learnfilter_clearcache\" /></td></tr>";
 		//print "<tr><td width=\"40%\">".__("Learnfilter API Key")."</td>";

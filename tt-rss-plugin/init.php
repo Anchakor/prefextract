@@ -12,6 +12,7 @@ class Learnfilter extends Plugin {
 		//$host->add_hook($host::HOOK_ARTICLE_BUTTON, $this);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
+		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this);
 
 		$this->LFcache = json_decode($this->host->get($this, "Learnfilter_cache"), true);
 	}
@@ -82,6 +83,9 @@ class Learnfilter extends Plugin {
 	} 
 	// $_SESSION['uid'] or $_SESSION['name'] as user ID
 
+	function hook_render_article($article) {
+		return $this->hook_render_article_cdm($article);
+	}
 	function hook_render_article_cdm($article) {
 		$acontent = "";
 		$uid = $this->getUID();

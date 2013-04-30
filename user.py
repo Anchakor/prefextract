@@ -28,7 +28,7 @@ def cutup2(sl, length):
 def getUserPath(id):
 	longFileName = base64.urlsafe_b64encode(id)
 	path = os.path.normpath("/".join(cutup(longFileName)))
-	path = os.path.join("users", path)
+	path = os.path.join(config.conf['datadir'], "users", path)
 	return path
 
 def deleteUser(id):

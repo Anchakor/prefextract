@@ -1,4 +1,5 @@
 {
+	"datadir": "DATADIR/",
 	"hostname": "localhost",
 	"port": 18967,
 	"hypernymDepth": 2,

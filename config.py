@@ -1,6 +1,7 @@
 class Conf:
 	def __init__(self):
 		self.conf = dict()
+		self.conf['datadir'] = '/var/lib/prefextract/'
 		self.conf['hostname'] = 'localhost'
 		self.conf['port'] = 8967
 		self.conf['hypernymDepth'] = 2

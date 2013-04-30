@@ -8,6 +8,7 @@ CONFIGDIR=/etc
 APPDIR=$(PREFIX)/share/webapps
 SYSTEMDDIR=$(PREFIX)/lib/systemd/system
 TTRSSDIR=$(APPDIR)/tt-rss/plugins
+DATADIR=/var/lib/prefextract
 
 PYTHON2EXEC=/usr/bin/env python2
 SCRIPTS=main.py user.py config.py termextract.py tag.py
@@ -17,6 +18,7 @@ all:
 
 install:
 	sed -e "s*PYTHON2EXEC*$(PYTHON2EXEC)*g;s*APPDIR*$(DESTDIR)$(APPDIR)*g;s*CONFIGDIR*$(DESTDIR)$(CONFIGDIR)*g" prefextract.service.in > prefextract.service
+	sed -e "s*DATADIR*$(DESTDIR)$(DATADIR)*g" prefextract.conf.in > prefextract.conf
 	for script in $(SCRIPTS); do \
 		$(INSTALL_DATA) $$script $(DESTDIR)$(APPDIR)/prefextract/$$script || exit 1; \
 	done

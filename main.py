@@ -8,7 +8,7 @@ import BaseHTTPServer
 import json
 from cgi import parse_header, parse_multipart
 from urlparse import parse_qs
-import sys
+import sys, os
 from config import config
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -82,6 +82,17 @@ if __name__ == '__main__':
         f.close()
     hostname = config.conf['hostname']
     portNumber = config.conf['port']
+    datadir = config.conf['datadir']
+    try:
+        if not os.path.exists(datadir):
+            print "Warning: data directory %s doesn't exist, attempting to create it" % (datadir)
+            os.makedirs(datadir)
+    except OSError:
+        print "Error: could not create the non-existant data directory %s" % (datadir)
+        raise
+    if(not os.access(datadir, os.W_OK)):
+        print "Error: data directory %s isn't writable" % (datadir)
+        sys.exit(1)
 
     serverClass = BaseHTTPServer.HTTPServer
     httpd = serverClass((hostname, portNumber), MyHandler)

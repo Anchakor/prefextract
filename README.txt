@@ -2,7 +2,7 @@
 
 Learnfilter is a intelligent filtering plugin for a Tiny Tiny RSS feed reader.
 
-User is presented with automatically extracted keywords for each brief article abstract, which he can rate. Those ratings are then used for filtering out articles which are not interesting to the user.
+User is presented with automatically extracted keywords for each brief article abstract, which he can rate. Those ratings are then used for filtering out articles which are not interesting to the user. (Works well only with english text)
 
 Prefextract is a backend python REST server which does most of the work and holds the ratings database.
 
